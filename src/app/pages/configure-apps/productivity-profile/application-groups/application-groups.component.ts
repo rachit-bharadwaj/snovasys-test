@@ -8,48 +8,56 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
   imports: [CommonModule, FormsModule], // Add FormsModule here
   template: `
     <div class="bg-white p-4 rounded shadow">
-      <!-- Search Box -->
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold">Application Groups</h2>
-        <div class="flex items-center bg-gray-100 rounded px-2">
-          <input
-            type="text"
-            placeholder="Search"
-            [(ngModel)]="searchTerm"
-            (input)="filterTable()"
-            class="px-4 py-2 text-sm bg-gray-100 focus:outline-none"
-          />
-        </div>
-      </div>
-
       <!-- Table -->
       <table class="w-full border-collapse">
-        <thead>
+        <thead class="border-b border-gray-300">
           <tr class="bg-gray-100 text-left">
             <th class="p-2 border-b font-medium">Application Group</th>
             <th class="p-2 border-b font-medium">Idle Time Configuration</th>
-            <th class="p-2 border-b font-medium">Status</th>
+            <th
+              class="p-2 border-b font-medium flex justify-between items-center"
+            >
+              <span> Status </span>
+
+              <div class="flex items-center bg-gray-100 rounded px-2">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  [(ngModel)]="searchTerm"
+                  (input)="filterTable()"
+                  class="px-4 py-2 text-sm bg-white rounded-lg focus:outline-none"
+                />
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            *ngFor="let row of paginatedData"
-            class="hover:bg-gray-50 border-b last:border-none"
+            *ngFor="let row of paginatedData; let i = index"
+            class="hover:bg-gray-50 border-b border-gray-300 last:border-none"
           >
             <td class="p-2">{{ row.group }}</td>
             <td class="p-2">{{ row.idleTime }}</td>
-            <td class="p-2">
+            <td class="p-2 flex gap-2">
               <button
                 class="px-2 py-1 rounded text-white"
-                [ngClass]="
-                  row.status === 'Productive'
-                    ? 'bg-green-500'
-                    : row.status === 'Non-Productive'
-                    ? 'bg-orange-500'
-                    : 'bg-gray-500'
-                "
+                [ngClass]="{
+                  'bg-green-500': row.status === 'Productive',
+                  'bg-gray-200 text-gray-600': row.status !== 'Productive'
+                }"
+                (click)="toggleStatus(i, 'Productive')"
               >
-                {{ row.status.toUpperCase() }}
+                Productive
+              </button>
+              <button
+                class="px-2 py-1 rounded text-white"
+                [ngClass]="{
+                  'bg-orange-500': row.status === 'Non-Productive',
+                  'bg-gray-200 text-gray-600': row.status !== 'Non-Productive'
+                }"
+                (click)="toggleStatus(i, 'Non-Productive')"
+              >
+                Non-Productive
               </button>
             </td>
           </tr>
@@ -94,15 +102,15 @@ import { FormsModule } from '@angular/forms'; // Import FormsModule
 export class ApplicationGroupsComponent {
   // Dummy data for the table
   data = [
-    { group: 'cdxzdsz', idleTime: 'Default', status: 'Productive' },
-    { group: 'Ct1', idleTime: 'Default', status: 'Non-Productive' },
-    { group: 'ct2', idleTime: 'Default', status: 'Productive' },
-    { group: 'ct3', idleTime: 'Default', status: 'Productive' },
-    { group: 'ct4', idleTime: 'Default', status: 'Non-Productive' },
-    { group: 'dczxd', idleTime: 'Default', status: 'Productive' },
-    { group: 'dseax', idleTime: 'Default', status: 'Non-Productive' },
-    { group: 'Education', idleTime: 'No Idle Time', status: 'Productive' },
-    { group: 'Email', idleTime: 'Default', status: 'Productive' },
+    { group: 'cdxzdsz', idleTime: 'Default', status: '' },
+    { group: 'Ct1', idleTime: 'Default', status: '' },
+    { group: 'ct2', idleTime: 'Default', status: '' },
+    { group: 'ct3', idleTime: 'Default', status: '' },
+    { group: 'ct4', idleTime: 'Default', status: '' },
+    { group: 'dczxd', idleTime: 'Default', status: '' },
+    { group: 'dseax', idleTime: 'Default', status: '' },
+    { group: 'Education', idleTime: 'No Idle Time', status: '' },
+    { group: 'Email', idleTime: 'Default', status: '' },
   ];
 
   // Pagination variables
@@ -149,7 +157,17 @@ export class ApplicationGroupsComponent {
     const filtered = this.data.filter((row) =>
       row.group.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
-    this.data = filtered;
-    this.updatePagination();
+    this.paginatedData = filtered.slice(
+      (this.currentPage - 1) * this.itemsPerPage,
+      this.currentPage * this.itemsPerPage
+    );
+  }
+
+  // Toggle status between Productive and Non-Productive
+  toggleStatus(index: number, status: string) {
+    const currentStatus = this.paginatedData[index].status;
+    this.paginatedData[index].status = currentStatus === status ? '' : status; // Toggle between active and inactive
+    this.data.find((d) => d.group === this.paginatedData[index].group)!.status =
+      this.paginatedData[index].status;
   }
 }

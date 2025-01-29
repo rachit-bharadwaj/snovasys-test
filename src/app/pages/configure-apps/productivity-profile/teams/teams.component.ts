@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Import FormsModule for two-way binding
 
 @Component({
   selector: 'app-teams',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="bg-white p-4 rounded shadow">
       <!-- Table -->
@@ -20,12 +21,16 @@ import { CommonModule } from '@angular/common';
         </thead>
         <tbody>
           <tr
-            *ngFor="let team of teams"
+            *ngFor="let team of teams; let i = index"
             class="hover:bg-gray-50 border-b last:border-none"
           >
             <td class="p-2">{{ team }}</td>
             <td class="p-2">
-              <button class="text-[#7ec7c7] hover:opacity-80" title="Edit Team">
+              <button
+                class="text-[#7ec7c7] hover:opacity-80"
+                title="Edit Team"
+                (click)="openEditDialog(i)"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -44,6 +49,48 @@ import { CommonModule } from '@angular/common';
           </tr>
         </tbody>
       </table>
+
+      <!-- Edit Dialog -->
+      <div
+        *ngIf="isDialogOpen"
+        class="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <div class="bg-white p-6 rounded shadow w-1/3">
+          <h2 class="text-lg font-bold mb-4">Edit Team Productivity Profile</h2>
+          <form (ngSubmit)="saveTeam()">
+            <div class="mb-4">
+              <label
+                for="teamName"
+                class="block text-sm font-medium text-gray-700"
+                >Team Name</label
+              >
+              <input
+                id="teamName"
+                type="text"
+                [(ngModel)]="editedTeam"
+                name="teamName"
+                required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-[#7ec7c7] focus:border-[#7ec7c7]"
+              />
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button
+                type="button"
+                (click)="closeDialog()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 bg-[#7ec7c7] text-white rounded hover:bg-[#65b2b2]"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -60,4 +107,31 @@ export class TeamsComponent {
     'a7',
     'a10',
   ];
+
+  // Edit Dialog State
+  isDialogOpen = false;
+  editedTeam: string = '';
+  editingIndex: number | null = null;
+
+  // Open the edit dialog
+  openEditDialog(index: number) {
+    this.editingIndex = index;
+    this.editedTeam = this.teams[index]; // Set the current team name for editing
+    this.isDialogOpen = true;
+  }
+
+  // Close the dialog
+  closeDialog() {
+    this.isDialogOpen = false;
+    this.editedTeam = '';
+    this.editingIndex = null;
+  }
+
+  // Save the edited team name
+  saveTeam() {
+    if (this.editingIndex !== null) {
+      this.teams[this.editingIndex] = this.editedTeam; // Update the team name
+      this.closeDialog();
+    }
+  }
 }

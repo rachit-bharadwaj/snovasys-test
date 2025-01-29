@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-productivity-profile',
   standalone: true,
-  imports: [RouterModule, SidebarComponent],
+  imports: [RouterModule, SidebarComponent, CommonModule],
   template: `
     <div class="flex min-h-screen">
       <!-- Sidebar Section -->
@@ -15,35 +16,61 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 
       <!-- Main Content Section -->
       <div class="flex-1 p-4">
-        <ul class="flex gap-10">
-          <li class="mb-2">
-            <a
+        <!-- Tabs Section -->
+        <ul class="flex border-b border-[#7ec7c7] gap-10">
+          <li>
+            <button
+              class="cursor-pointer p-2"
               routerLink="/configure-apps/productivity-profile/application-groups"
-              routerLinkActive="text-blue-500 font-bold"
+              [ngClass]="{
+                'text-[#7ec7c7] border-b-2 border-[#7ec7c7]':
+                  isActive('application-groups'),
+                'text-gray-500': !isActive('application-groups')
+              }"
             >
               Application Groups
-            </a>
+            </button>
           </li>
-          <li class="mb-2">
-            <a
+          <li>
+            <button
+              class="cursor-pointer p-2"
               routerLink="/configure-apps/productivity-profile/teams"
-              routerLinkActive="text-blue-500 font-bold"
+              [ngClass]="{
+                'text-[#7ec7c7] border-b-2 border-[#7ec7c7]': isActive('teams'),
+                'text-gray-500': !isActive('teams')
+              }"
             >
               Teams
-            </a>
+            </button>
           </li>
-          <li class="mb-2">
-            <a
+          <li>
+            <button
+              class="cursor-pointer p-2"
               routerLink="/configure-apps/productivity-profile/users"
-              routerLinkActive="text-blue-500 font-bold"
+              [ngClass]="{
+                'text-[#7ec7c7] border-b-2 border-[#7ec7c7]': isActive('users'),
+                'text-gray-500': !isActive('users')
+              }"
             >
               Users
-            </a>
+            </button>
           </li>
         </ul>
-        <router-outlet></router-outlet>
+
+        <!-- Dynamic Content -->
+        <div class="p-4">
+          <router-outlet></router-outlet>
+        </div>
       </div>
     </div>
   `,
 })
-export class ProductivityProfileComponent {}
+export class ProductivityProfileComponent {
+  constructor(private router: Router) {}
+
+  isActive(path: string): boolean {
+    return this.router.url.startsWith(
+      `/configure-apps/productivity-profile/${path}`
+    );
+  }
+}
