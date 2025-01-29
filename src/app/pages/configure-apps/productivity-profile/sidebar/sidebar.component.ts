@@ -1,11 +1,11 @@
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule, NgFor],
+  imports: [FormsModule, NgFor, NgIf],
   template: `
     <div class="w-full bg-gray-50 p-4">
       <!-- Search Box -->
@@ -33,12 +33,18 @@ import { FormsModule } from '@angular/forms';
         <h3 class="text-sm font-bold text-[#7ec7c7] mb-2">Default</h3>
         <ul>
           <li
-            *ngFor="let profile of filteredProfiles"
-            class="flex items-center justify-between py-2 border-b last:border-b-0"
+            *ngFor="let profile of filteredProfiles; let i = index"
+            (click)="selectProfile(i)"
+            [class.bg-gray-200]="selectedProfile === i"
+            class="flex items-center justify-between py-2 border-b border-gray-300 last:border-b-0 cursor-pointer hover:bg-gray-100"
           >
             <span class="text-sm">{{ profile }}</span>
             <div class="flex space-x-2">
-              <button class="text-gray-500 hover:text-gray-800" title="Edit">
+              <button
+                class="text-gray-500 hover:text-gray-800"
+                title="Edit"
+                (click)="openEditDialog(i, $event)"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -53,7 +59,11 @@ import { FormsModule } from '@angular/forms';
                   />
                 </svg>
               </button>
-              <button class="text-gray-500 hover:text-gray-800" title="Delete">
+              <button
+                class="text-gray-500 hover:text-red-600"
+                title="Delete"
+                (click)="deleteProfile(i, $event)"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -71,11 +81,40 @@ import { FormsModule } from '@angular/forms';
           </li>
         </ul>
       </div>
+
+      <!-- Edit Dialog -->
+      <div
+        *ngIf="isEditDialogOpen"
+        class="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center"
+      >
+        <div class="bg-white rounded p-6 w-96">
+          <h2 class="text-lg font-bold mb-4">Manage Productivity Profile</h2>
+          <label class="block mb-2 text-sm">Productivity Profile Name</label>
+          <input
+            [(ngModel)]="editedProfileName"
+            class="w-full border rounded px-3 py-2"
+            type="text"
+          />
+          <div class="flex justify-end gap-2 mt-4">
+            <button
+              (click)="saveEdit()"
+              class="bg-[#7ec7c7] text-white px-4 py-2 rounded"
+            >
+              Edit
+            </button>
+            <button
+              (click)="closeEditDialog()"
+              class="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
 export class SidebarComponent {
-  // Dummy profile data
   profiles: string[] = [
     'qte3',
     'fvgr',
@@ -87,15 +126,46 @@ export class SidebarComponent {
     'fc',
     'test',
   ];
-
-  // Search term and filtered profiles
   searchTerm: string = '';
   filteredProfiles: string[] = [...this.profiles];
+  selectedProfile: number | null = null;
 
-  // Method to filter profiles based on the search term
+  isEditDialogOpen = false;
+  editedProfileName: string = '';
+  editIndex: number | null = null;
+
   filterProfiles() {
     this.filteredProfiles = this.profiles.filter((profile) =>
       profile.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
+  }
+
+  selectProfile(index: number) {
+    this.selectedProfile = index;
+  }
+
+  openEditDialog(index: number, event: Event) {
+    event.stopPropagation();
+    this.editIndex = index;
+    this.editedProfileName = this.filteredProfiles[index];
+    this.isEditDialogOpen = true;
+  }
+
+  saveEdit() {
+    if (this.editIndex !== null) {
+      this.filteredProfiles[this.editIndex] = this.editedProfileName;
+      this.profiles[this.editIndex] = this.editedProfileName;
+    }
+    this.closeEditDialog();
+  }
+
+  closeEditDialog() {
+    this.isEditDialogOpen = false;
+  }
+
+  deleteProfile(index: number, event: Event) {
+    event.stopPropagation();
+    this.filteredProfiles.splice(index, 1);
+    this.profiles.splice(index, 1);
   }
 }
